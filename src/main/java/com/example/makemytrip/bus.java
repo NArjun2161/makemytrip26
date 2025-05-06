@@ -6,5 +6,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class bus {
     @GetMapping("/bus")
-    public String getData() {return  " testing require fullfill BUS Microservice" ; }
+    public String getData() {return  " testing require fullfill Microservice" ; }
 }
