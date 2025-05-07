@@ -17,5 +17,15 @@ pipeline {
                 sh 'mvn test'
             }
         }
+        stage('clean Package') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage('Complete Pipeline') {
+            steps {
+                echo "Arjun Pipeline executed "
+            }
+        }
     }
 }
