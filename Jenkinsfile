@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-        stage('checking versions of tools') {
+        stage('Checking Versions of Tools') {
             steps {
                 sh ''' 
                     git --version
@@ -12,25 +12,31 @@ pipeline {
             }
         }
 
-        stage('checkout') {
+        stage('Print All Env Vars') {
             steps {
-                git 'https://github.com/NArjun2161/makemytrip26.git'
+                sh 'printenv'
             }
         }
 
-        stage('build') {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/NArjun2161/makemytrip26.git'
+            }
+        }
+
+        stage('Build') {
             steps {
                 sh 'mvn compile'
             }
         }
 
-        stage('test') {
+        stage('Test') {
             steps {
                 sh 'mvn test'
             }
         }
 
-        stage('clean Package') {
+        stage('Clean and Package') {
             steps {
                 sh 'mvn clean package'
             }
@@ -38,7 +44,7 @@ pipeline {
 
         stage('Complete Pipeline') {
             steps {
-                echo "Arjun Pipeline executed"
+                echo 'Arjun Pipeline executed'
             }
         }
     }
