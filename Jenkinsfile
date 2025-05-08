@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        M2_HOME = '/usr/share/maven' // Optional
+        M2_HOME = '/usr/share/maven'
         SONARQUBE_ENV = 'MySonarQubeServer' 
     }
 
@@ -29,9 +29,15 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build and Test') {
             steps {
-                sh 'mvn compile'
+                sh 'mvn clean verify'
+            }
+        }
+
+        stage('Generate JaCoCo Report') {
+            steps {
+                sh 'mvn jacoco:report'
             }
         }
 
@@ -42,10 +48,13 @@ pipeline {
                         sh '''
                             export PATH=$PATH:/opt/sonar-scanner/bin
                             mvn dependency:copy-dependencies
+
                             sonar-scanner \
                               -Dsonar.projectKey=newProject \
                               -Dsonar.sources=src \
                               -Dsonar.java.binaries=target/classes \
+                              -Dsonar.java.libraries=target/dependency \
+                              -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
                               -Dsonar.host.url=http://192.168.217.155:9000 \
                               -Dsonar.login=$SONAR_TOKEN
                         '''
@@ -62,13 +71,7 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Clean and Package') {
+        stage('Package') {
             steps {
                 sh 'mvn clean package'
             }
