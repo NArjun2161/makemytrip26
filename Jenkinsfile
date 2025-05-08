@@ -61,9 +61,9 @@ pipeline {
         stage('Deploy (Local Run)') {
             steps {
                 sh '''
-                    pkill -f makemytrip-1.0.jar || true
-                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 & > app.log 2>&1 &
-                    echo "App is deployed and running locally."
+                    pkill -f "makemytrip.*.jar" || true
+                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+                    echo "App started on port 9090"
                 '''
             }
         }
