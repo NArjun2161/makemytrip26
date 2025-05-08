@@ -41,6 +41,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
                         sh '''
                             export PATH=$PATH:/opt/sonar-scanner/bin
+                            mvn dependency:copy-dependencies
                             sonar-scanner \
                               -Dsonar.projectKey=newProject \
                               -Dsonar.sources=src \
