@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         M2_HOME = '/usr/share/maven' // Optional
+        SONARQUBE_ENV = 'MySonarQubeServer' // Name you gave in Jenkins → Configure System
     }
 
     stages {
@@ -31,6 +32,21 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'mvn compile'
+            }
+        }
+
+        // ✅ ADD THIS STAGE FOR SONARQUBE
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${env.SONARQUBE_ENV}") {
+                    sh '''
+                        sonar-scanner \
+                          -Dsonar.projectKey=makemytrip \
+                          -Dsonar.sources=src \
+                          -Dsonar.java.binaries=target/classes \
+                          -Dsonar.host.url=http://192.168.217.155:9000/
+                    '''
+                }
             }
         }
 
