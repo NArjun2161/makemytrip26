@@ -38,14 +38,25 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    sh '''
-                        export PATH=$PATH:/opt/sonar-scanner/bin
-                        sonar-scanner \
-                          -Dsonar.projectKey=makemytrip01 \
-                          -Dsonar.sources=src \
-                          -Dsonar.java.binaries=target/classes \
-                          -Dsonar.host.url=http://192.168.217.155:9000
-                    '''
+                    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            export PATH=$PATH:/opt/sonar-scanner/bin
+                            sonar-scanner \
+                              -Dsonar.projectKey=newProject \
+                              -Dsonar.sources=src \
+                              -Dsonar.java.binaries=target/classes \
+                              -Dsonar.host.url=http://192.168.217.155:9000 \
+                              -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
