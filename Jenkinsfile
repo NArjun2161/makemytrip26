@@ -41,7 +41,7 @@ pipeline {
                     sh '''
                         export PATH=$PATH:/opt/sonar-scanner/bin
                         sonar-scanner \
-                          -Dsonar.projectKey=makemytrip \
+                          -Dsonar.projectKey=makemytrip01 \
                           -Dsonar.sources=src \
                           -Dsonar.java.binaries=target/classes \
                           -Dsonar.host.url=http://192.168.217.155:9000
