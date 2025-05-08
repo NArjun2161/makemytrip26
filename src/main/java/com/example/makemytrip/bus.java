@@ -4,7 +4,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class bus {
+public class BusController {
+
     @GetMapping("/bus")
-    public String getData() {return  " testing require fullfill Microservice" ; }
+    public String getData() {
+        return "Testing: Microservice requirement fulfilled.";
+    }
 }
