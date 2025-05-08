@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         M2_HOME = '/usr/share/maven' // Optional
-        SONARQUBE_ENV = 'MySonarQubeServer' // Name you gave in Jenkins → Configure System
+        SONARQUBE_ENV = 'MySonarQubeServer' 
     }
 
     stages {
