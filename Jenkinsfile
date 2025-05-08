@@ -93,7 +93,7 @@ pipeline {
             steps {
                 sh '''
                     pkill -f "makemytrip.*.jar" || true
-                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+                    nohup java -jar /var/lib/jenkins/workspace/Pipeline_Build/target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
                     echo "App started on port 9090"
                 '''
             }
