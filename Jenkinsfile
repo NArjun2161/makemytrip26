@@ -92,25 +92,24 @@ pipeline {
 
         stage('Deploy with Ngrok') {
             steps {
-                dir('target') {
-                    sh '''
-                        echo "🚦 Stopping existing app (if running)..."
-                        pkill -f "makemytrip-0.0.1-SNAPSHOT.jar" || true
-                        pkill -f "ngrok" || true
+                sh '''
+                    echo "🚦 Stopping existing app (if running)..."
+                    pkill -f "makemytrip-0.0.1-SNAPSHOT.jar" || true
+                    pkill -f "ngrok" || true
+                    sleep 3
 
-                        echo "🚀 Starting Spring Boot app on port 9090..."
-                        nohup java -jar makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > ../app.log 2>&1 &
+                    echo "🚀 Starting Spring Boot app on port 9090..."
+                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
 
-                        echo "🌐 Starting Ngrok tunnel on port 9090..."
-                        nohup ngrok http 9090 > ../ngrok.log 2>&1 &
+                    echo "🌐 Starting Ngrok tunnel on port 9090..."
+                    nohup ngrok http 9090 > ngrok.log 2>&1 &
 
-                        echo "⏳ Waiting for Ngrok to initialize..."
-                        sleep 10
+                    echo "⏳ Waiting for Ngrok to initialize..."
+                    sleep 10
 
-                        echo "🌍 Fetching Ngrok public URL..."
-                        curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
-                    '''
-                }
+                    echo "🌍 Fetching Ngrok public URL..."
+                    curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+                '''
             }
         }
     }
