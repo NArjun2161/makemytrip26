@@ -93,11 +93,6 @@ pipeline {
         stage('Deploy with Ngrok') {
             steps {
                 sh '''
-                    echo "🚦 Stopping existing app (if running)..."
-                    pkill -f "makemytrip-0.0.1-SNAPSHOT.jar" || true
-                    pkill -f "ngrok" || true
-                    sleep 3
-
                     echo "🚀 Starting Spring Boot app on port 9090..."
                     nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
 
