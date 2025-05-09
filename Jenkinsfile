@@ -104,19 +104,13 @@ pipeline {
 
                     echo "🔍 Checking if Spring Boot app is running..."
                     if curl --fail http://localhost:9090/actuator/health; then
-                      echo "✅ Spring Boot application is up!"
+                        echo "✅ Spring Boot application is up!"
                     else
-                      echo "❌ Spring Boot application failed to start!"
-                      cat app.log
-                      exit 1
+                        echo "❌ Spring Boot application failed to start!"
+                        cat app.log
+                        exit 1
                     fi
                 '''
-            }
-        }
-
-        stage('Complete Pipeline') {
-            steps {
-                echo '✅ Arjun Pipeline executed successfully!'
             }
         }
     }
