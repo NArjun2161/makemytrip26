@@ -90,30 +90,28 @@ pipeline {
             }
         }
 
-        stage('Deploy (Local Run)') {
-            steps {
-                sh '''
-                    echo "🚦 Stopping existing app (if running)..."
-                    pkill -f "makemytrip.*.jar" || true
+        stage('Deploy with Ngrok') {
+    steps {
+        sh '''
+            echo "🚦 Stopping existing app (if running)..."
+            pkill -f "makemytrip-0.0.1-SNAPSHOT.jar" || true
+            pkill -f "ngrok" || true
 
-                    echo "🚀 Starting new app on port 9090..."
-                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+            echo "🚀 Starting Spring Boot app on port 9090..."
+            nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
 
-                    echo "⏳ Waiting for app to start..."
-                    sleep 10
+            echo "🌐 Starting Ngrok tunnel on port 9090..."
+            nohup ngrok http 9090 > ngrok.log 2>&1 &
 
-                    echo "🔍 Checking if Spring Boot app is running..."
-                    if curl --fail http://localhost:9090/actuator/health; then
-                        echo "✅ Spring Boot application is up!"
-                    else
-                        echo "❌ Spring Boot application failed to start!"
-                        cat app.log
-                        exit 1
-                    fi
-                '''
-            }
-        }
+            echo "⏳ Waiting for Ngrok to initialize..."
+            sleep 10
+
+            echo "🌍 Fetching Ngrok public URL..."
+            curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+        '''
     }
+}
+
 
     post {
         success {
