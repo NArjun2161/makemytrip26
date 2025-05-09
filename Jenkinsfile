@@ -95,9 +95,6 @@ pipeline {
                 sh '''
                     echo "🚀 Starting Spring Boot app on port 9090..."
                     nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
-
-                    echo "🌐 Starting Ngrok tunnel on port 9090..."
-                    nohup ngrok http 9090 > ngrok.log 2>&1 &
                 '''
             }
         }
