@@ -95,14 +95,22 @@ pipeline {
                 sh '''
                     echo "🚀 Starting Spring Boot application..."
 
-                    # Kill old process if running
-                    PID=$(lsof -ti:9090) && [ -n "$PID" ] && kill -9 $PID || echo "No process on port 9090"
+                    # Kill existing process on port 9090
+                    PID=$(lsof -ti:9090)
+                    if [ -n "$PID" ]; then
+                        echo "🛑 Killing existing process on port 9090 (PID=$PID)"
+                        kill -9 $PID
+                    fi
 
-                    # Run new JAR in background
+                    # Start the Spring Boot app in the background (detached from Jenkins)
                     nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+                    echo $! > app.pid
 
-                    sleep 5
-                    echo "✅ Application deployed. Check: curl http://localhost:9090"
+                    # Wait briefly for the app to initialize
+                    sleep 10
+
+                    # Check if it's responding
+                    curl -f http://localhost:9090 || echo "⚠️ App may not have started successfully."
                 '''
             }
         }
