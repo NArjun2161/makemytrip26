@@ -105,12 +105,12 @@ pipeline {
                         fi
                     '''
 
-                    // Start the app in background
-                    sh 'nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &'
+                    sh '''
+                        nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+                    '''
 
-                    sleep(time: 10, unit: "SECONDS")
+                    sleep(time: 10, unit: 'SECONDS')
 
-                    // Verify it's running
                     def curlStatus = sh(script: 'curl -f http://localhost:9090', returnStatus: true)
                     if (curlStatus != 0) {
                         error("❌ Spring Boot app did not start properly.")
@@ -121,3 +121,4 @@ pipeline {
             }
         }
     }
+}
