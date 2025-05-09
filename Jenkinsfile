@@ -98,12 +98,6 @@ pipeline {
 
                     echo "🌐 Starting Ngrok tunnel on port 9090..."
                     nohup ngrok http 9090 > ngrok.log 2>&1 &
-
-                    echo "⏳ Waiting for Ngrok to initialize..."
-                    sleep 10
-
-                    echo "🌍 Fetching Ngrok public URL..."
-                    curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
                 '''
             }
         }
