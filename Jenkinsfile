@@ -101,16 +101,16 @@ pipeline {
 
                         docker build -t makemytrip-image .
 
-                        docker run -d -p 9090:9090 --name makemytrip-app makemytrip-image
+                        docker run -d -p 8080:8080 --name makemytrip-app makemytrip-image
                     '''
 
                     sleep(time: 10, unit: 'SECONDS')
 
-                    def curlStatus = sh(script: 'curl -f http://localhost:9090', returnStatus: true)
+                    def curlStatus = sh(script: 'curl -f http://localhost:8080', returnStatus: true)
                     if (curlStatus != 0) {
                         error("❌ Dockerized app did not start properly.")
                     } else {
-                        echo "✅ Dockerized app is running at http://localhost:9090"
+                        echo "✅ Dockerized app is running at http://localhost:8080"
                     }
                 }
             }
