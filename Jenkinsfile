@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         M2_HOME = '/usr/share/maven'
-        PATH = "$PATH:$M2_HOME/bin:/opt/sonar-scanner/bin"
+        PATH = "${env.PATH}:${M2_HOME}/bin:/opt/sonar-scanner/bin"
         SONARQUBE_ENV = 'MySonarQubeServer'
     }
 
@@ -90,22 +90,24 @@ pipeline {
             }
         }
 
-stage('Deploy (Local Run)') {
-    steps {
-        sh '''
-            echo "🚀 Starting Spring Boot application..."
-            
-            # Kill old process if running
-            PID=$(lsof -ti:9090) && [ -n "$PID" ] && kill -9 $PID || echo "No process on 9090"
+        stage('Deploy (Local Run)') {
+            steps {
+                sh '''
+                    echo "🚀 Starting Spring Boot application..."
 
-            # Run the new JAR in background
-            nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+                    # Kill old process if running
+                    PID=$(lsof -ti:9090) && [ -n "$PID" ] && kill -9 $PID || echo "No process on port 9090"
 
-            sleep 5
-            echo "✅ Deployed. Check with: curl http://localhost:9090"
-        '''
+                    # Run new JAR in background
+                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+
+                    sleep 5
+                    echo "✅ Application deployed. Check: curl http://localhost:9090"
+                '''
+            }
+        }
     }
-}
+
     post {
         success {
             echo '🎉 Pipeline completed successfully.'
