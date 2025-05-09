@@ -90,15 +90,34 @@ pipeline {
             }
         }
 
-        stage('Deploy with Ngrok') {
-            steps {
-                sh '''
-                    echo "🚀 Starting Spring Boot app on port 9090..."
-                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
-                '''
-            }
-        }
+stage('Deploy with Ngrok') {
+    steps {
+        sh '''
+            echo "🚦 Stopping previous Spring Boot app and Ngrok if any..."
+            pkill -f "makemytrip-0.0.1-SNAPSHOT.jar" || true
+            pkill -f "ngrok" || true
+            sleep 2
+
+            echo "🚀 Starting Spring Boot app on port 9090..."
+            nohup /usr/lib/jvm/java-21-amazon-corretto/bin/java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > $WORKSPACE/app.log 2>&1 & disown
+
+            echo "🌐 Starting Ngrok tunnel on port 9090..."
+            nohup ngrok http 9090 > $WORKSPACE/ngrok.log 2>&1 & disown
+
+            echo "⏳ Waiting for Ngrok to initialize..."
+            sleep 10
+
+            echo "🌍 Fetching Ngrok public URL..."
+            curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+
+            echo "📜 app.log:"
+            tail -n 20 $WORKSPACE/app.log
+
+            echo "📜 ngrok.log:"
+            tail -n 20 $WORKSPACE/ngrok.log
+        '''
     }
+}
 
     post {
         success {
