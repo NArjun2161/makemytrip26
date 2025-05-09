@@ -90,32 +90,27 @@ pipeline {
             }
         }
 
-        stage('Deploy (Local Run)') {
+        stage('Docker Build & Deploy') {
             steps {
                 script {
-                    echo "🚀 Starting Spring Boot application..."
+                    echo "🐳 Building Docker image..."
 
                     sh '''
-                        PID=$(lsof -ti:9090 || true)
-                        if [ -n "$PID" ]; then
-                            echo "🛑 Killing process on port 9090 (PID=$PID)"
-                            kill -9 $PID
-                        else
-                            echo "✅ No existing process on port 9090"
-                        fi
-                    '''
+                        docker rm -f makemytrip-app || true
+                        docker rmi -f makemytrip-image || true
 
-                    sh '''
-                        nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+                        docker build -t makemytrip-image .
+
+                        docker run -d -p 9090:9090 --name makemytrip-app makemytrip-image
                     '''
 
                     sleep(time: 10, unit: 'SECONDS')
 
                     def curlStatus = sh(script: 'curl -f http://localhost:9090', returnStatus: true)
                     if (curlStatus != 0) {
-                        error("❌ Spring Boot app did not start properly.")
+                        error("❌ Dockerized app did not start properly.")
                     } else {
-                        echo "✅ App started successfully at http://localhost:9090"
+                        echo "✅ Dockerized app is running at http://localhost:9090"
                     }
                 }
             }
