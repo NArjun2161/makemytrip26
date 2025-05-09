@@ -92,29 +92,36 @@ pipeline {
 
         stage('Deploy with Ngrok') {
             steps {
-                sh '''
+                sh '''#!/bin/bash
                     echo "🚦 Stopping previous Spring Boot app and Ngrok if any..."
                     pkill -f "makemytrip-0.0.1-SNAPSHOT.jar" || true
                     pkill -f "ngrok" || true
                     sleep 2
 
                     echo "🚀 Starting Spring Boot app on port 9090..."
-                    nohup /usr/lib/jvm/java-21-amazon-corretto/bin/java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > $WORKSPACE/app.log 2>&1 & disown
+                    nohup /usr/lib/jvm/java-21-amazon-corretto/bin/java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > "$WORKSPACE/app.log" 2>&1 &
 
                     echo "🌐 Starting Ngrok tunnel on port 9090..."
-                    nohup ngrok http 9090 > $WORKSPACE/ngrok.log 2>&1 & disown
+                    nohup ngrok http 9090 > "$WORKSPACE/ngrok.log" 2>&1 &
 
                     echo "⏳ Waiting for Ngrok to initialize..."
                     sleep 10
 
                     echo "🌍 Fetching Ngrok public URL..."
-                    curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+                    ngrok_url=$(curl --silent http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+                    
+                    if [ -z "$ngrok_url" ] || [ "$ngrok_url" = "null" ]; then
+                        echo "❌ Failed to fetch Ngrok public URL"
+                        exit 1
+                    else
+                        echo "✅ Ngrok public URL: $ngrok_url"
+                    fi
 
                     echo "📜 app.log:"
-                    tail -n 20 $WORKSPACE/app.log
+                    tail -n 20 "$WORKSPACE/app.log"
 
                     echo "📜 ngrok.log:"
-                    tail -n 20 $WORKSPACE/ngrok.log
+                    tail -n 20 "$WORKSPACE/ngrok.log"
                 '''
             }
         }
