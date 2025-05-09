@@ -92,36 +92,32 @@ pipeline {
 
         stage('Deploy (Local Run)') {
             steps {
-                sh '''
+                script {
                     echo "🚀 Starting Spring Boot application..."
 
-                    # Kill existing process on port 9090 if running
-                    PID=$(lsof -ti:9090 || true)
-                    if [ -n "$PID" ]; then
-                        echo "🛑 Killing process on port 9090 (PID=$PID)"
-                        kill -9 $PID
-                    else
-                        echo "✅ No existing process on port 9090"
-                    fi
+                    sh '''
+                        PID=$(lsof -ti:9090 || true)
+                        if [ -n "$PID" ]; then
+                            echo "🛑 Killing process on port 9090 (PID=$PID)"
+                            kill -9 $PID
+                        else
+                            echo "✅ No existing process on port 9090"
+                        fi
+                    '''
 
-                    # Start app in background
-                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+                    // Start the app in background
+                    sh 'nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &'
 
-                    sleep 10
+                    sleep(time: 10, unit: "SECONDS")
 
-                    echo "🔍 Checking if app started..."
-                    curl -f http://localhost:9090 || echo "⚠️ App may not have started yet."
-                '''
+                    // Verify it's running
+                    def curlStatus = sh(script: 'curl -f http://localhost:9090', returnStatus: true)
+                    if (curlStatus != 0) {
+                        error("❌ Spring Boot app did not start properly.")
+                    } else {
+                        echo "✅ App started successfully at http://localhost:9090"
+                    }
+                }
             }
         }
     }
-
-    post {
-        success {
-            echo '🎉 Pipeline completed successfully.'
-        }
-        failure {
-            echo '❌ Pipeline failed. Please check the logs.'
-        }
-    }
-}
