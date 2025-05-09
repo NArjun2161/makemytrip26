@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         M2_HOME = '/usr/share/maven'
+        PATH = "$PATH:$M2_HOME/bin:/opt/sonar-scanner/bin"
         SONARQUBE_ENV = 'MySonarQubeServer'
     }
 
@@ -47,7 +48,6 @@ pipeline {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
                     withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                            export PATH=$PATH:/opt/sonar-scanner/bin
                             mvn dependency:copy-dependencies
 
                             sonar-scanner \
@@ -90,19 +90,22 @@ pipeline {
             }
         }
 
-        stage('Deploy with Ngrok') {
-            steps {
+stage('Deploy (Local Run)') {
+    steps {
+        sh '''
+            echo "🚀 Starting Spring Boot application..."
+            
+            # Kill old process if running
+            PID=$(lsof -ti:9090) && [ -n "$PID" ] && kill -9 $PID || echo "No process on 9090"
 
+            # Run the new JAR in background
+            nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
 
-                    echo "🚀 Starting Spring Boot app on port 9090..."
-                    nohup java -jar /var/lib/jenkins/workspace/Pipeline_Build/target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > "$WORKSPACE/app.log" 2>&1 &
-
-
-                '''
-            }
-        }
+            sleep 5
+            echo "✅ Deployed. Check with: curl http://localhost:9090"
+        '''
     }
-
+}
     post {
         success {
             echo '🎉 Pipeline completed successfully.'
