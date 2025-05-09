@@ -7,9 +7,11 @@ pipeline {
     }
 
     stages {
-        stage('Checking Versions of Tools') {
+
+        stage('Tool Versions') {
             steps {
-                sh ''' 
+                sh '''
+                    echo "🔧 Checking tool versions..."
                     git --version
                     mvn -v
                     java --version
@@ -17,19 +19,19 @@ pipeline {
             }
         }
 
-        stage('Print All Env Vars') {
+        stage('Print Environment') {
             steps {
                 sh 'printenv'
             }
         }
 
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
                 git url: 'https://github.com/NArjun2161/makemytrip26.git'
             }
         }
 
-        stage('Build and Test') {
+        stage('Build and Unit Test') {
             steps {
                 sh 'mvn clean verify'
             }
@@ -71,7 +73,7 @@ pipeline {
             }
         }
 
-        stage('Package') {
+        stage('Package Application') {
             steps {
                 sh 'mvn clean package'
             }
@@ -83,18 +85,22 @@ pipeline {
             }
         }
 
-        stage('Archive Build Artifacts') {
+        stage('Archive JAR Artifacts') {
             steps {
                 archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
             }
         }
 
-        stage('Deploy (Local Run)') {
+        stage('Deploy Application') {
             steps {
                 sh '''
+                    echo "🚀 Stopping any existing instance..."
                     pkill -f "makemytrip.*.jar" || true
-                    nohup java -jar /var/lib/jenkins/workspace/Pipeline_Build/target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
-                    echo "App started on port 9090"
+                    
+                    echo "🚀 Starting new instance..."
+                    nohup java -jar target/makemytrip-0.0.1-SNAPSHOT.jar --server.port=9090 > app.log 2>&1 &
+                    
+                    echo "✅ Application deployed and running on port 9090."
                 '''
             }
         }
