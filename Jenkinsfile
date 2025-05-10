@@ -5,6 +5,9 @@ pipeline {
         M2_HOME = '/usr/share/maven'
         PATH = "${env.PATH}:${M2_HOME}/bin:/opt/sonar-scanner/bin"
         SONARQUBE_ENV = 'MySonarQubeServer'
+        IMAGE_NAME = 'arjun1421/makemytrip-image:latest'
+        CONTAINER_NAME = 'makemytrip-app'
+        PORT = '9090'
     }
 
     stages {
@@ -96,21 +99,21 @@ pipeline {
                     echo "🐳 Building Docker image..."
 
                     sh '''
-                        docker rm -f makemytrip-app || true
-                        docker rmi -f makemytrip-image || true
+                        docker rm -f $CONTAINER_NAME || true
+                        docker rmi -f $IMAGE_NAME || true
 
-                        docker build -t makemytrip-image .
+                        docker build -t $IMAGE_NAME .
 
-                        docker run -d -p 9090:8080 --name makemytrip-app makemytrip-image
+                        docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $IMAGE_NAME
                     '''
 
                     sleep(time: 10, unit: 'SECONDS')
 
-                    def curlStatus = sh(script: 'curl -f http://localhost:9090', returnStatus: true)
+                    def curlStatus = sh(script: "curl -f http://localhost:$PORT", returnStatus: true)
                     if (curlStatus != 0) {
                         error("❌ Dockerized app did not start properly.")
                     } else {
-                        echo "✅ Dockerized app is running at http://localhost:9090"
+                        echo "✅ Dockerized app is running at http://localhost:$PORT"
                     }
                 }
             }
@@ -121,8 +124,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker tag makemytrip-image arjun1421/makemytrip-image:latest
-                        docker push arjun1421/makemytrip-image:latest
+                        docker push $IMAGE_NAME
                     '''
                 }
             }
